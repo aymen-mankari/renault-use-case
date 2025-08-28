@@ -1,10 +1,12 @@
 package com.renault.service;
 
+import com.renault.dto.GarageDTO;
 import com.renault.dto.VehicleDTO;
 import com.renault.exception.DataNotFoundException;
 import com.renault.model.Garage;
 import com.renault.repository.GarageRepository;
 import com.renault.repository.VehicleRepository;
+import com.renault.utils.GarageMapper;
 import com.renault.utils.VehicleMapper;
 import org.mapstruct.factory.Mappers;
 import org.springframework.stereotype.Service;
@@ -20,11 +22,13 @@ public class VehicleService implements IService<VehicleDTO> {
     private VehicleRepository vehicleRepository;
     private GarageRepository garageRepository;
     private VehicleMapper vehicleMapper;
+    private GarageMapper garageMapper;
 
     public VehicleService(VehicleRepository vehicleRepository, GarageRepository garageRepository) {
         this.vehicleRepository = vehicleRepository;
         this.garageRepository = garageRepository;
         this.vehicleMapper = Mappers.getMapper(VehicleMapper.class);
+        this.garageMapper = Mappers.getMapper(GarageMapper.class);
     }
 
     @Override
@@ -115,6 +119,10 @@ public class VehicleService implements IService<VehicleDTO> {
         var optionalGarage = this.garageRepository.findById(idGarage);
         var garage = optionalGarage.orElseThrow(() -> new DataNotFoundException(DATA_NOT_FOUND_EXCEPTION_MESSAGE_GARAGE + idGarage));
         return this.vehicleMapper.toVehicleDTOList(garage.getVehicles());
+    }
+
+    public Set<GarageDTO> getVehiclesByBrandAssociatedToGarages(final String brand){
+        return this.garageMapper.toGarageDTOList(this.vehicleRepository.findVehiclesByBrandAssociatedToGarages(brand)) ;
     }
 
 }

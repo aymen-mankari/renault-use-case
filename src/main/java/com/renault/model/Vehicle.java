@@ -1,5 +1,7 @@
 package com.renault.model;
 
+import com.renault.enums.FuelType;
+import com.renault.enums.TypeVehicle;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -18,12 +20,14 @@ public class Vehicle {
     private String brand;
     private LocalDate manufactureYear;
     @Enumerated(EnumType.STRING)
+    private TypeVehicle typeVehicle;
+    @Enumerated(EnumType.STRING)
     private FuelType fuelType;
     @ManyToMany(mappedBy = "vehicles")
     private Set<Garage> garages = new HashSet<>();
     @ManyToMany
     @JoinTable(
-            name = "accessory",
+            name = "vehicle_accessory",
             joinColumns = @JoinColumn(name = "vehicle_id"),
             inverseJoinColumns = @JoinColumn(name = "accessory_id"))
     private Set<Accessory> accessories = new HashSet<>();
@@ -44,12 +48,5 @@ public class Vehicle {
     public void removeAccessory(Accessory accessory){
         this.accessories.remove(accessory);
         accessory.removeVehicle(this);
-    }
-
-    public enum FuelType {
-        ESSENCE,
-        DIESEL,
-        HYBRIDE,
-        ELECTRIQUE
     }
 }

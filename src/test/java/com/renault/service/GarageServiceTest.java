@@ -106,4 +106,6 @@ public class GarageServiceTest {
         doReturn(Optional.empty()).when(mockGarageRepository).findById(any());
         assertThrows(DataNotFoundException.class, () -> this.garageService.delete(10L));
     }
+
+
 }

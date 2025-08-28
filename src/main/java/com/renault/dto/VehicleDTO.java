@@ -1,5 +1,7 @@
 package com.renault.dto;
 
+import com.renault.enums.FuelType;
+import com.renault.enums.TypeVehicle;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
@@ -14,16 +16,11 @@ import java.util.Set;
 public class VehicleDTO {
     private Long id;
     private String brand;
+    private TypeVehicle typeVehicle;
     private LocalDate manufactureYear;
     private FuelType fuelType;
     private Set<AccessoryDTO> accessories = new HashSet<>();
 
     //commented this out to avoid cyclic reference problem during mapping bidirectional association
     //private Set<GarageDTO> garages = new HashSet<>();
-    public enum FuelType {
-        ESSENCE,
-        DIESEL,
-        HYBRIDE,
-        ELECTRIQUE
-    }
 }

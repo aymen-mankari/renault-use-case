@@ -2,11 +2,14 @@ package com.renault.service;
 
 import com.renault.dto.GarageDTO;
 import com.renault.exception.DataNotFoundException;
+import com.renault.model.Garage;
 import com.renault.repository.GarageRepository;
 import com.renault.utils.GarageMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.mapstruct.factory.Mappers;
 import org.springframework.stereotype.Service;
+
+import java.util.Set;
 
 import static com.renault.constants.ApplicationConstants.DATA_NOT_FOUND_EXCEPTION_MESSAGE_GARAGE;
 
@@ -35,7 +38,8 @@ public class GarageService implements IService<GarageDTO> {
     public GarageDTO update(GarageDTO obj) {
         var updatedGarage = garageMapper.garageDTOtoGarage(obj);
         var optionalGarage = this.garageRepository.findById(updatedGarage.getId());
-        if (!optionalGarage.isPresent()) throw new DataNotFoundException(DATA_NOT_FOUND_EXCEPTION_MESSAGE_GARAGE + obj.getId());
+        if (!optionalGarage.isPresent())
+            throw new DataNotFoundException(DATA_NOT_FOUND_EXCEPTION_MESSAGE_GARAGE + obj.getId());
         try {
             return garageMapper.garageToGarageDTO(this.garageRepository.save(updatedGarage));
         } catch (Exception ex) {
@@ -60,6 +64,16 @@ public class GarageService implements IService<GarageDTO> {
             var garageDTO = garageMapper.garageToGarageDTO(optGarage.get());
             return garageDTO;
         } else throw new DataNotFoundException(DATA_NOT_FOUND_EXCEPTION_MESSAGE_GARAGE + id);
+    }
+
+    public Set<GarageDTO> findByTypeVehicles(final String typeVehicle) {
+        var garages = this.garageRepository.findByTypeVehicles(typeVehicle);
+        return this.garageMapper.toGarageDTOList(garages);
+    }
+
+    public Set<GarageDTO> findByAccessory(final String accessoryName) {
+        var garages = this.garageRepository.findByAccessoryName(accessoryName);
+        return this.garageMapper.toGarageDTOList(garages);
     }
 
 }

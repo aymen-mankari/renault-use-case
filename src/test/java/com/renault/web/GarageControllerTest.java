@@ -24,8 +24,7 @@ import static org.hamcrest.Matchers.is;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @ExtendWith(SpringExtension.class)
@@ -54,6 +53,7 @@ public class GarageControllerTest {
 
     @Test
     void testGetGarageByIdFound() throws Exception {
+        // Setup mocks
         doReturn(mockGarage).when(garageService).findById(any());
         // Execute the GET request
         mockMvc.perform(get("/api/v1/garage/{id}", 1))
@@ -68,6 +68,7 @@ public class GarageControllerTest {
 
     @Test
     void testGetGarageByIdNotFound() throws Exception {
+        // Setup mocks
         doThrow(DataNotFoundException.class).when(garageService).findById(any());
         // Execute the GET request
         mockMvc.perform(get("/api/v1/garage/{id}", 1))
@@ -79,6 +80,7 @@ public class GarageControllerTest {
 
     @Test
     void testSaveGarageSuccess() throws Exception {
+        // Setup mocks
         doReturn(mockGarage).when(garageService).save(any());
         var postGarage = new GarageDTO();
         postGarage.setAddress("address test");
@@ -103,16 +105,45 @@ public class GarageControllerTest {
 
     @Test
     void testSaveGarageFailure() throws Exception {
+        // Setup mocks
         doThrow(RuntimeException.class).when(garageService).save(any());
-        var postGarage = new GarageDTO();
+        var mockPostGarage = new GarageDTO();
+
         // Execute the POST request
         mockMvc.perform(post("/api/v1/garage/save")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(TestUtils.asJsonString(postGarage)))
+                        .content(TestUtils.asJsonString(mockPostGarage)))
                 // Validate the returned fields
                 .andExpect(status().isInternalServerError())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.httpStatus", is(500)));
+    }
+
+    @Test
+    void testUpdateGarageSuccess() throws Exception {
+        // Setup mocks
+        var mockUpdatedGarage = new GarageDTO();
+        mockUpdatedGarage.setId(1L);
+        mockUpdatedGarage.setAddress("updated address test");
+        mockUpdatedGarage.setName("UPDATED GARAGE NAME");
+        mockUpdatedGarage.setEmail("test@test.com");
+        mockUpdatedGarage.getTimeSlots().put(DayOfWeek.MONDAY, new OpeningTimeDTO(LocalTime.of(9, 00), LocalTime.of(19, 00)));
+        mockUpdatedGarage.getTimeSlots().put(DayOfWeek.TUESDAY, new OpeningTimeDTO(LocalTime.of(9, 00), LocalTime.of(19, 00)));
+        mockUpdatedGarage.getTimeSlots().put(DayOfWeek.WEDNESDAY, new OpeningTimeDTO(LocalTime.of(9, 00), LocalTime.of(19, 00)));
+        mockUpdatedGarage.getTimeSlots().put(DayOfWeek.FRIDAY, new OpeningTimeDTO(LocalTime.of(9, 00), LocalTime.of(19, 00)));
+        doReturn(mockUpdatedGarage).when(garageService).update(any());
+
+        // Execute the POST request
+        mockMvc.perform(put("/api/v1/garage/update")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(TestUtils.asJsonString(mockUpdatedGarage)))
+                // Validate the response code and content type
+                .andExpect(status().isOk())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                // Validate the returned fields
+                .andExpect(jsonPath("$.id", is(1)))
+                .andExpect(jsonPath("$.name", is("UPDATED GARAGE NAME")))
+                .andExpect(jsonPath("$.timeSlots", aMapWithSize(4)));
     }
 
 

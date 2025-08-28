@@ -43,4 +43,16 @@ public class GarageController {
         return ResponseEntity.ok(deleteStatus);
     }
 
+    @GetMapping("/byTypeVehicle/{typeVehicle}")
+    public ResponseEntity<?> getVehiclesByTypes(@PathVariable String typeVehicle) {
+        var garage = this.garageService.findByTypeVehicles(typeVehicle);
+        return ResponseEntity.ok(garage);
+    }
+
+    @GetMapping("/byAccessory/{accessoryName}")
+    public ResponseEntity<?> getByAccessory(@PathVariable String accessoryName) {
+        var garage = this.garageService.findByAccessory(accessoryName);
+        return ResponseEntity.ok(garage);
+    }
+
 }

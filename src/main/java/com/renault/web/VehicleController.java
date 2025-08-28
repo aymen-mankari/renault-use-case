@@ -56,4 +56,11 @@ public class VehicleController {
         log.info("Getting vehicles related to garage : {}", garageId);
         return ResponseEntity.ok(this.vehicleService.getVehiclesRelatedToAGarage(garageId));
     }
+
+    @GetMapping("/brand/{brand}")
+    public ResponseEntity<?> getVehiclesAssociatedToGaragesByBrand(@PathVariable String brand){
+        log.info("Getting vehicles associated to garages by brand : {}", brand);
+        return ResponseEntity.ok(this.vehicleService.getVehiclesByBrandAssociatedToGarages(brand));
+    }
+
 }

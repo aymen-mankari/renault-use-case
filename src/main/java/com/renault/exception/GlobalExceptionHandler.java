@@ -1,6 +1,7 @@
 package com.renault.exception;
 
 import com.renault.utils.ErrorEntity;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ControllerAdvice;
@@ -9,6 +10,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import java.time.LocalDateTime;
 
 @ControllerAdvice
+@Slf4j
 public class GlobalExceptionHandler {
 
     @ExceptionHandler(DataNotFoundException.class)
@@ -18,6 +20,7 @@ public class GlobalExceptionHandler {
                 .message(exception.getMessage())
                 .httpStatus(HttpStatus.NOT_FOUND.value())
                 .build();
+        log.error("An exception occurred :", exception);
         return ResponseEntity.status(HttpStatus.NOT_FOUND.value()).body(error);
     }
 
@@ -28,6 +31,7 @@ public class GlobalExceptionHandler {
                 .message(exception.getMessage())
                 .httpStatus(HttpStatus.INTERNAL_SERVER_ERROR.value())
                 .build();
+        log.error("An exception occurred :", exception);
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR.value()).body(error);
     }
 }

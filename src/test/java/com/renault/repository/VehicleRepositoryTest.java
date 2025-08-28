@@ -1,5 +1,7 @@
 package com.renault.repository;
 
+import com.renault.enums.FuelType;
+import com.renault.enums.TypeVehicle;
 import com.renault.model.Vehicle;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -20,8 +22,9 @@ public class VehicleRepositoryTest {
     void initializeData(){
         mockVehicle = new Vehicle();
         mockVehicle.setBrand("Toyota");
+        mockVehicle.setTypeVehicle(TypeVehicle.COUPE);
         mockVehicle.setManufactureYear(LocalDate.of(2010, 01, 01));
-        mockVehicle.setFuelType(Vehicle.FuelType.DIESEL);
+        mockVehicle.setFuelType(FuelType.DIESEL);
     }
 
     @Test
@@ -35,9 +38,9 @@ public class VehicleRepositoryTest {
     void updateTest(){
         vehicleRepository.save(mockVehicle);
         var vehicleToUpdate = vehicleRepository.findById(mockVehicle.getId()).get();
-        vehicleToUpdate.setFuelType(Vehicle.FuelType.ELECTRIQUE);
+        vehicleToUpdate.setFuelType(FuelType.ELECTRIQUE);
         var updatedVehicle = vehicleRepository.save(vehicleToUpdate);
         Assertions.assertEquals(mockVehicle.getId(), updatedVehicle.getId());
-        Assertions.assertEquals(Vehicle.FuelType.ELECTRIQUE, updatedVehicle.getFuelType());
+        Assertions.assertEquals(FuelType.ELECTRIQUE, updatedVehicle.getFuelType());
     }
 }
