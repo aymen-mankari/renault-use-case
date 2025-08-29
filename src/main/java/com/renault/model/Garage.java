@@ -3,8 +3,7 @@ package com.renault.model;
 import static com.renault.constants.ApplicationConstants.*;
 import com.renault.exception.BadRequestException;
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 
 import java.time.DayOfWeek;
 import java.time.LocalTime;
@@ -13,9 +12,12 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+@Builder
 @Entity
 @Getter
 @Setter
+@AllArgsConstructor
+@NoArgsConstructor
 public class Garage {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)

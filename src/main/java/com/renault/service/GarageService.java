@@ -37,8 +37,8 @@ public class GarageService implements IService<GarageDTO> {
     @Override
     public GarageDTO update(GarageDTO obj) {
         var updatedGarage = garageMapper.garageDTOtoGarage(obj);
-        var optionalGarage = this.garageRepository.findById(updatedGarage.getId());
-        if (!optionalGarage.isPresent())
+        var existsById = this.garageRepository.existsById(updatedGarage.getId());
+        if (!existsById)
             throw new DataNotFoundException(DATA_NOT_FOUND_EXCEPTION_MESSAGE_GARAGE + obj.getId());
         try {
             return garageMapper.garageToGarageDTO(this.garageRepository.save(updatedGarage));

@@ -16,39 +16,41 @@ public class GarageRepositoryTest {
     @Autowired
     private GarageRepository garageRepository;
 
-    private Garage mockGarage;
+    private Garage garage;
 
     @BeforeEach
-    void initializeData() {
-        //defining Garage objects
-        mockGarage = new Garage();
-        mockGarage.setAddress("address test");
-        mockGarage.setName("GARAGE NAME");
-        mockGarage.setEmail("test@test.com");
-        mockGarage.addTimeSlot(DayOfWeek.MONDAY, LocalTime.of(9, 00), LocalTime.of(19, 00));
-        mockGarage.addTimeSlot(DayOfWeek.TUESDAY, LocalTime.of(9, 00), LocalTime.of(19, 00));
-        mockGarage.addTimeSlot(DayOfWeek.WEDNESDAY, LocalTime.of(9, 00), LocalTime.of(19, 00));
-        mockGarage.addTimeSlot(DayOfWeek.THURSDAY, LocalTime.of(9, 00), LocalTime.of(19, 00));
-        mockGarage.addTimeSlot(DayOfWeek.FRIDAY, LocalTime.of(9, 00), LocalTime.of(19, 00));
-        mockGarage.addTimeSlot(DayOfWeek.SATURDAY, LocalTime.of(10, 00), LocalTime.of(17, 00));
-        mockGarage.addTimeSlot(DayOfWeek.SUNDAY, LocalTime.of(10, 00), LocalTime.of(17, 00));
-
+    void setUp() {
+        //Initialize common mock objects
+        garage = new Garage();
+        garage.setAddress("address test");
+        garage.setName("GARAGE NAME");
+        garage.setEmail("test@test.com");
+        garage.addTimeSlot(DayOfWeek.MONDAY, LocalTime.of(9, 00), LocalTime.of(19, 00));
+        garage.addTimeSlot(DayOfWeek.TUESDAY, LocalTime.of(9, 00), LocalTime.of(19, 00));
+        garage.addTimeSlot(DayOfWeek.WEDNESDAY, LocalTime.of(9, 00), LocalTime.of(19, 00));
+        garage.addTimeSlot(DayOfWeek.THURSDAY, LocalTime.of(9, 00), LocalTime.of(19, 00));
+        garage.addTimeSlot(DayOfWeek.FRIDAY, LocalTime.of(9, 00), LocalTime.of(19, 00));
+        garage.addTimeSlot(DayOfWeek.SATURDAY, LocalTime.of(10, 00), LocalTime.of(17, 00));
+        garage.addTimeSlot(DayOfWeek.SUNDAY, LocalTime.of(10, 00), LocalTime.of(17, 00));
     }
 
     @Test
     void saveTest() {
-        var savedGarage = garageRepository.save(mockGarage);
+        //Invoke DB statement
+        var result = garageRepository.save(garage);
         // Validate the saved garage
-        Assertions.assertNotNull(savedGarage);
-        Assertions.assertEquals("GARAGE NAME", savedGarage.getName());
-        Assertions.assertEquals("test@test.com", savedGarage.getEmail());
-        Assertions.assertEquals(7, savedGarage.getTimeSlots().size());
+        Assertions.assertNotNull(result);
+        Assertions.assertEquals("GARAGE NAME", result.getName());
+        Assertions.assertEquals("test@test.com", result.getEmail());
+        Assertions.assertEquals(7, result.getTimeSlots().size());
     }
 
     @Test
     void updateTest() {
-        garageRepository.save(mockGarage);
-        var garageToUpdate = garageRepository.findById(mockGarage.getId()).get();
+        //save a garage to update it later
+        garageRepository.save(garage);
+        //get garage to update
+        var garageToUpdate = garageRepository.findById(garage.getId()).get();
         Assertions.assertNotNull(garageToUpdate);
 
         // Updating data
@@ -59,21 +61,24 @@ public class GarageRepositoryTest {
         garageToUpdate.setName("Updated name");
 
         // Save changes
-        var updatedGarage = garageRepository.save(garageToUpdate);
+        var result = garageRepository.save(garageToUpdate);
 
         // Validate the updated garage
-        Assertions.assertEquals("Updated name", updatedGarage.getName());
-        Assertions.assertEquals("+1-555-0789", updatedGarage.getPhone());
-        Assertions.assertEquals(7, updatedGarage.getTimeSlots().size());
-        Assertions.assertEquals(LocalTime.of(8, 00), updatedGarage.getTimeSlots().get(DayOfWeek.MONDAY).getStartTime());
+        Assertions.assertEquals("Updated name", result.getName());
+        Assertions.assertEquals("+1-555-0789", result.getPhone());
+        Assertions.assertEquals(7, result.getTimeSlots().size());
+        Assertions.assertEquals(LocalTime.of(8, 00), result.getTimeSlots().get(DayOfWeek.MONDAY).getStartTime());
     }
 
     @Test
     void findGarageByIdTest() {
-        garageRepository.save(mockGarage);
-        var result = garageRepository.findById(mockGarage.getId()).get();
+        //save a garage for retrieve
+        garageRepository.save(garage);
+        //Invoke DB statement
+        var result = garageRepository.findById(garage.getId()).get();
+        //Verify results
         Assertions.assertNotNull(result);
-        Assertions.assertEquals(mockGarage.getId(), result.getId());
+        Assertions.assertEquals(garage.getId(), result.getId());
     }
 
 }

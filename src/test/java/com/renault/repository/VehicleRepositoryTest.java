@@ -9,38 +9,45 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 
-import java.time.LocalDate;
-
 @DataJpaTest
 public class VehicleRepositoryTest {
 
     @Autowired
     private VehicleRepository vehicleRepository;
-    private Vehicle mockVehicle;
+    private Vehicle vehicle;
 
     @BeforeEach
     void initializeData(){
-        mockVehicle = new Vehicle();
-        mockVehicle.setBrand("Toyota");
-        mockVehicle.setTypeVehicle(TypeVehicle.COUPE);
-        mockVehicle.setManufactureYear(LocalDate.of(2010, 01, 01));
-        mockVehicle.setFuelType(FuelType.DIESEL);
+        vehicle = new Vehicle();
+        vehicle.setBrand("Toyota");
+        vehicle.setTypeVehicle(TypeVehicle.COUPE);
+        vehicle.setManufactureYear(2010);
+        vehicle.setFuelType(FuelType.DIESEL);
     }
 
     @Test
     void saveTest(){
-        vehicleRepository.save(mockVehicle);
-        Assertions.assertNotNull(mockVehicle);
-        Assertions.assertNotNull(mockVehicle.getId());
+        var result = vehicleRepository.save(vehicle);
+        Assertions.assertNotNull(result);
+        Assertions.assertNotNull(result.getId());
     }
 
     @Test
     void updateTest(){
-        vehicleRepository.save(mockVehicle);
-        var vehicleToUpdate = vehicleRepository.findById(mockVehicle.getId()).get();
+        //save a vehicle to update it later
+        vehicleRepository.save(vehicle);
+        //get vehicle to update by its id
+        var vehicleToUpdate = vehicleRepository.findById(vehicle.getId()).get();
+
+        vehicleToUpdate.setBrand("Renault");
+        vehicleToUpdate.setTypeVehicle(TypeVehicle.COUPE);
         vehicleToUpdate.setFuelType(FuelType.ELECTRIQUE);
-        var updatedVehicle = vehicleRepository.save(vehicleToUpdate);
-        Assertions.assertEquals(mockVehicle.getId(), updatedVehicle.getId());
-        Assertions.assertEquals(FuelType.ELECTRIQUE, updatedVehicle.getFuelType());
+        //Save changes
+        var result = vehicleRepository.save(vehicleToUpdate);
+        //Verify results
+        Assertions.assertEquals(vehicle.getId(), result.getId());
+        Assertions.assertEquals(FuelType.ELECTRIQUE, result.getFuelType());
+        Assertions.assertEquals("Renault", result.getBrand());
+
     }
 }

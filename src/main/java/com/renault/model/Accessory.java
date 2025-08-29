@@ -27,6 +27,6 @@ public class Accessory {
     }
 
     public void removeVehicle(Vehicle vehicle){
-        this.vehicles.add(vehicle);
+        this.vehicles.remove(vehicle);
     }
 }

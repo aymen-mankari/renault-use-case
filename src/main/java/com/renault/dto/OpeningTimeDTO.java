@@ -1,12 +1,11 @@
 package com.renault.dto;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.ToString;
+import lombok.*;
 
 import java.time.LocalTime;
 
+@Builder
+@NoArgsConstructor
 @AllArgsConstructor
 @Getter
 @Setter

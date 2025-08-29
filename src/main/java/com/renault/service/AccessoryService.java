@@ -57,8 +57,10 @@ public class AccessoryService implements IService<AccessoryDTO> {
         var optionalAccessory = this.accessoryRepository.findById(id);
         if (optionalAccessory.isPresent()) {
             var accessory = optionalAccessory.get();
-            for (Vehicle vehicle : accessory.getVehicles()) {
-                vehicle.removeAccessory(accessory);
+            if(accessory.getVehicles() !=null){
+                for (Vehicle vehicle : accessory.getVehicles()) {
+                    vehicle.removeAccessory(accessory);
+                }
             }
             this.accessoryRepository.delete(accessory);
             return true;

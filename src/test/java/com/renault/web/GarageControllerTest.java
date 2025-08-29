@@ -2,6 +2,9 @@ package com.renault.web;
 
 import com.renault.dto.GarageDTO;
 import com.renault.dto.OpeningTimeDTO;
+import com.renault.dto.VehicleDTO;
+import com.renault.enums.FuelType;
+import com.renault.enums.TypeVehicle;
 import com.renault.exception.DataNotFoundException;
 import com.renault.service.GarageService;
 import com.renault.utils.TestUtils;
@@ -17,13 +20,16 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.time.DayOfWeek;
+import java.time.LocalDate;
 import java.time.LocalTime;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 
-import static org.hamcrest.Matchers.aMapWithSize;
-import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.*;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -41,14 +47,22 @@ public class GarageControllerTest {
     private GarageDTO mockGarage;
 
     @BeforeEach
-    void initializeData(){
+    void initializeData() {
+        //Setup mock objects with dummy data
+        var mockTimeSlotsMap= new HashMap<DayOfWeek, OpeningTimeDTO>();
+        mockTimeSlotsMap.put(DayOfWeek.MONDAY, new OpeningTimeDTO(LocalTime.of(9, 00), LocalTime.of(19, 00)));
+        mockTimeSlotsMap.put(DayOfWeek.TUESDAY, new OpeningTimeDTO(LocalTime.of(9, 00), LocalTime.of(19, 00)));
+        var mockVehiclesList = new HashSet<VehicleDTO>();
+        mockVehiclesList.add(new VehicleDTO(1L, "Toyota", TypeVehicle.SUV, 2022, FuelType.HYBRIDE));
+        mockVehiclesList.add(new VehicleDTO(2L, "Ford", TypeVehicle.SUV, 2020, FuelType.DIESEL));
+
         mockGarage = new GarageDTO();
         mockGarage.setId(1L);
         mockGarage.setAddress("address test");
         mockGarage.setName("GARAGE NAME");
         mockGarage.setEmail("test@test.com");
-        mockGarage.getTimeSlots().put(DayOfWeek.MONDAY, new OpeningTimeDTO(LocalTime.of(9, 00), LocalTime.of(19, 00)));
-        mockGarage.getTimeSlots().put(DayOfWeek.TUESDAY, new OpeningTimeDTO(LocalTime.of(9, 00), LocalTime.of(19, 00)));
+        mockGarage.setTimeSlots(mockTimeSlotsMap);
+        mockGarage.setVehicles(mockVehiclesList);
     }
 
     @Test
@@ -91,8 +105,8 @@ public class GarageControllerTest {
 
         // Execute the POST request
         mockMvc.perform(post("/api/v1/garage/save")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(TestUtils.asJsonString(postGarage)))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(TestUtils.asJsonString(postGarage)))
                 // Validate the response code and content type
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
@@ -133,7 +147,7 @@ public class GarageControllerTest {
         mockUpdatedGarage.getTimeSlots().put(DayOfWeek.FRIDAY, new OpeningTimeDTO(LocalTime.of(9, 00), LocalTime.of(19, 00)));
         doReturn(mockUpdatedGarage).when(garageService).update(any());
 
-        // Execute the POST request
+        // Execute the PUT request
         mockMvc.perform(put("/api/v1/garage/update")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(TestUtils.asJsonString(mockUpdatedGarage)))
@@ -146,5 +160,39 @@ public class GarageControllerTest {
                 .andExpect(jsonPath("$.timeSlots", aMapWithSize(4)));
     }
 
+    @Test
+    void testDeleteGarageSuccess() throws Exception {
+        // Setup mocks
+        doReturn(Boolean.valueOf(true)).when(garageService).delete(any());
+        // Execute the DELETE request
+        mockMvc.perform(delete("/api/v1/garage/delete/{id}", 1L))
+                // Validate the response code and content type
+                .andExpect(status().isOk());
+    }
 
+    @Test
+    void testDeleteGarageFailure() throws Exception {
+        // Setup mocks
+        doThrow(DataNotFoundException.class).when(garageService).delete(any());
+        // Execute the DELETE request
+        mockMvc.perform(delete("/api/v1/garage/delete/{id}", 100L))
+                // Validate the response code and content type
+                .andExpect(status().isNotFound())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.httpStatus", is(404)));
+    }
+
+    @Test
+    void testGetVehiclesByType() throws Exception {
+        // Setup mocks
+        var garages = Set.of(mockGarage);
+        doReturn(garages).when(garageService).findByTypeVehicles(any());
+        // Execute the DELETE request
+        mockMvc.perform(get("/api/v1/garage/byTypeVehicle/{typeVehicle}", "SUV"))
+                // Validate the response code and content type
+                .andExpect(status().isOk())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$[0].vehicles", hasSize(2)))
+                .andExpect(jsonPath("$[0].vehicles[0].typeVehicle", is("SUV")));
+    }
 }

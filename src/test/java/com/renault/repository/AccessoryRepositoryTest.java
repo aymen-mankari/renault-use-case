@@ -15,33 +15,40 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 public class AccessoryRepositoryTest {
     @Autowired
     private AccessoryRepository accessoryRepository;
-    private Accessory mockAccessory;
+    private Accessory accessory;
 
     @BeforeEach
     void initializeData() {
-        mockAccessory = new Accessory();
-        mockAccessory.setType("type accessory");
-        mockAccessory.setPrice(new BigDecimal(120.98));
-        mockAccessory.setDescription("description accessory");
-        mockAccessory.setName("name accessory");
+        //Initialize common mock
+        accessory = new Accessory();
+        accessory.setType("type accessory");
+        accessory.setPrice(new BigDecimal(120.98));
+        accessory.setDescription("description accessory");
+        accessory.setName("name accessory");
     }
 
     @Test
     void saveTest() {
-        accessoryRepository.save(mockAccessory);
-        assertNotNull(mockAccessory);
-        assertNotNull(mockAccessory.getId());
+        //Invoke DB statement
+        var result = accessoryRepository.save(accessory);
+        //Verify results
+        assertNotNull(result);
+        assertNotNull(result.getId());
     }
 
     @Test
     void saveUpdate() {
-        accessoryRepository.save(mockAccessory);
-        var accessoireToUpdate = accessoryRepository.findById(mockAccessory.getId()).get();
-        accessoireToUpdate.setDescription("new description");
-        accessoireToUpdate.setPrice(new BigDecimal(200.99));
-        var result = accessoryRepository.save(accessoireToUpdate);
-        assertEquals(new BigDecimal(200.99), accessoireToUpdate.getPrice());
-        assertEquals("new description", accessoireToUpdate.getDescription());
+        //Save an accessory to modify it later
+        accessoryRepository.save(accessory);
+        //Get & modify accessory
+        var accessoryToUpdate = accessoryRepository.findById(accessory.getId()).get();
+        accessoryToUpdate.setDescription("new description");
+        accessoryToUpdate.setPrice(new BigDecimal(200.99));
+        //Invoke DB statement
+        var result = accessoryRepository.save(accessoryToUpdate);
+        //Verify results
+        assertEquals(new BigDecimal(200.99), result.getPrice());
+        assertEquals("new description", result.getDescription());
 
     }
 }

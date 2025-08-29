@@ -33,6 +33,7 @@ public class GarageServiceTest {
 
     @BeforeEach
     void initializeData() {
+        //Initializing common mock objects
         mockGarageDTO = new GarageDTO();
         mockGarageDTO.setAddress("address test");
         mockGarageDTO.setName("GARAGE NAME");
@@ -51,25 +52,32 @@ public class GarageServiceTest {
 
     @Test
     void testSave() {
+        //Setup mocks
         doReturn(mockGarage).when(mockGarageRepository).save(any());
-        var savedGarage = this.garageService.save(mockGarageDTO);
-        assertInstanceOf(GarageDTO.class, savedGarage);
+        //Invoke service method
+        var result = this.garageService.save(mockGarageDTO);
+        //Verify results
+        assertNotNull(result);
+        assertInstanceOf(GarageDTO.class, result);
     }
 
     @Test
     void testUpdateSuccess() {
-        var updatedGarage = new Garage();
-        updatedGarage.setId(1L);
-        updatedGarage.setAddress("updated address");
-        updatedGarage.setName("updated garage name");
-        updatedGarage.setEmail("test@test.com");
-        updatedGarage.addTimeSlot(DayOfWeek.MONDAY, LocalTime.of(9, 00), LocalTime.of(19, 00));
-        updatedGarage.addTimeSlot(DayOfWeek.TUESDAY, LocalTime.of(9, 00), LocalTime.of(19, 00));
-        updatedGarage.addTimeSlot(DayOfWeek.WEDNESDAY, LocalTime.of(9, 00), LocalTime.of(19, 00));
+        //Setup mocks
+        var mockUpdatedGarage = new Garage();
+        mockUpdatedGarage.setId(1L);
+        mockUpdatedGarage.setAddress("updated address");
+        mockUpdatedGarage.setName("updated garage name");
+        mockUpdatedGarage.setEmail("test@test.com");
+        mockUpdatedGarage.addTimeSlot(DayOfWeek.MONDAY, LocalTime.of(9, 00), LocalTime.of(19, 00));
+        mockUpdatedGarage.addTimeSlot(DayOfWeek.TUESDAY, LocalTime.of(9, 00), LocalTime.of(19, 00));
+        mockUpdatedGarage.addTimeSlot(DayOfWeek.WEDNESDAY, LocalTime.of(9, 00), LocalTime.of(19, 00));
 
-        doReturn(Optional.of(mockGarage)).when(mockGarageRepository).findById(any());
-        doReturn(updatedGarage).when(mockGarageRepository).save(any());
+        doReturn(true).when(mockGarageRepository).existsById(any());
+        doReturn(mockUpdatedGarage).when(mockGarageRepository).save(any());
+        //Invoke service method
         var result = this.garageService.update(mockGarageDTO);
+        //Verify results
         assertInstanceOf(GarageDTO.class, result);
         assertEquals("updated garage name", result.getName());
         assertEquals(3, result.getTimeSlots().size());

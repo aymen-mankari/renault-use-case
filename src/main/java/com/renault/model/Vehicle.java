@@ -3,22 +3,24 @@ package com.renault.model;
 import com.renault.enums.FuelType;
 import com.renault.enums.TypeVehicle;
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 
 import java.time.LocalDate;
 import java.util.HashSet;
 import java.util.Set;
 
+@Builder
 @Entity
 @Getter
 @Setter
+@NoArgsConstructor
+@AllArgsConstructor
 public class Vehicle {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
     private String brand;
-    private LocalDate manufactureYear;
+    private Integer manufactureYear;
     @Enumerated(EnumType.STRING)
     private TypeVehicle typeVehicle;
     @Enumerated(EnumType.STRING)

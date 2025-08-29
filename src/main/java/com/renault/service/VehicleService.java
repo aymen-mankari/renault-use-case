@@ -44,8 +44,8 @@ public class VehicleService implements IService<VehicleDTO> {
     @Override
     public VehicleDTO update(VehicleDTO obj) {
         var updatedVehicle = this.vehicleMapper.vehicleDTOtoVehicle(obj);
-        var optionalVehicle = this.vehicleRepository.findById(updatedVehicle.getId());
-        if (!optionalVehicle.isPresent())
+        var existsById = this.vehicleRepository.existsById(updatedVehicle.getId());
+        if (!existsById)
             throw new DataNotFoundException(DATA_NOT_FOUND_EXCEPTION_MESSAGE_VEHICLE + obj.getId());
         try {
             return this.vehicleMapper.vehicleToVehicleDTO(this.vehicleRepository.save(updatedVehicle));
@@ -59,8 +59,10 @@ public class VehicleService implements IService<VehicleDTO> {
         var optionalVehicle = this.vehicleRepository.findById(id);
         if (optionalVehicle.isPresent()) {
             var vehicle = optionalVehicle.get();
-            for(Garage garage : vehicle.getGarages()){
-                garage.removeVehicle(vehicle);
+            if (vehicle.getGarages() != null) {
+                for (Garage garage : vehicle.getGarages()) {
+                    garage.removeVehicle(vehicle);
+                }
             }
             this.vehicleRepository.delete(vehicle);
             return true;
@@ -121,8 +123,8 @@ public class VehicleService implements IService<VehicleDTO> {
         return this.vehicleMapper.toVehicleDTOList(garage.getVehicles());
     }
 
-    public Set<GarageDTO> getVehiclesByBrandAssociatedToGarages(final String brand){
-        return this.garageMapper.toGarageDTOList(this.vehicleRepository.findVehiclesByBrandAssociatedToGarages(brand)) ;
+    public Set<GarageDTO> getVehiclesByBrandAssociatedToGarages(final String brand) {
+        return this.garageMapper.toGarageDTOList(this.vehicleRepository.findVehiclesByBrandAssociatedToGarages(brand));
     }
 
 }
