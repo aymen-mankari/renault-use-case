@@ -1,6 +1,7 @@
 package com.renault.service;
 
 import com.renault.dto.GarageDTO;
+import com.renault.enums.TypeVehicle;
 import com.renault.exception.DataNotFoundException;
 import com.renault.model.Garage;
 import com.renault.repository.GarageRepository;
@@ -67,7 +68,7 @@ public class GarageService implements IService<GarageDTO> {
     }
 
     public Set<GarageDTO> findByTypeVehicles(final String typeVehicle) {
-        var garages = this.garageRepository.findByTypeVehicles(typeVehicle);
+        var garages = this.garageRepository.findByTypeVehicles(TypeVehicle.valueOf(typeVehicle));
         return this.garageMapper.toGarageDTOList(garages);
     }
 
