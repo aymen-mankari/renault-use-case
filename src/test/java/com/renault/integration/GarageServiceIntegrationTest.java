@@ -2,7 +2,6 @@ package com.renault.integration;
 
 import com.renault.dto.GarageDTO;
 import com.renault.dto.OpeningTimeDTO;
-import com.renault.service.GarageService;
 import com.renault.utils.TestUtils;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,8 +28,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 public class GarageServiceIntegrationTest {
     @Autowired
     private MockMvc mockMvc;
-    @Autowired
-    private GarageService garageService;
     private static final String BASE_URI = "/api/v1/garage";
 
     @Test
@@ -163,7 +160,7 @@ public class GarageServiceIntegrationTest {
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 // Validate the returned fields
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-                .andExpect(jsonPath("$[0].vehicles", hasSize(2)))
+                .andExpect(jsonPath("$[0].vehicles", hasSize(3)))
                 .andExpect(jsonPath("$[0].vehicles[0].typeVehicle", is("COUPE")));
     }
 

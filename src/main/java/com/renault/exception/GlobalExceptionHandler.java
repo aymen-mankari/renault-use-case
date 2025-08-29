@@ -34,4 +34,15 @@ public class GlobalExceptionHandler {
         log.error("An exception occurred :", exception);
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR.value()).body(error);
     }
+
+    @ExceptionHandler(BadRequestException.class)
+    public ResponseEntity<ErrorEntity> BadRequestExceptionHandler(BadRequestException exception) {
+        ErrorEntity error = ErrorEntity.builder()
+                .timeStamp(LocalDateTime.now())
+                .message(exception.getMessage())
+                .httpStatus(HttpStatus.BAD_REQUEST.value())
+                .build();
+        log.error("An exception occurred :", exception);
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST.value()).body(error);
+    }
 }

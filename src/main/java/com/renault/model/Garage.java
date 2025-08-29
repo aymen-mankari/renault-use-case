@@ -63,6 +63,8 @@ public class Garage {
     }
 
     public void removeVehicle(Vehicle vehicle) {
+        if(!vehicles.contains(vehicle))
+            throw new BadRequestException(String.format(BAD_REQUEST_EXCEPTION_VEHICLE_NOT_FOUND_IN_GARAGE, vehicle.getId(),this.getId()));
         this.vehicles.remove(vehicle);
         vehicle.removeGarage(this);
     }

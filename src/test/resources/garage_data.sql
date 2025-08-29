@@ -1,6 +1,5 @@
 -- Clear tables before insertion
-DELETE FROM schedule_time_slots;
-DELETE FROM garage;
+
 
 -- Insert into garage table
 INSERT INTO garage (id, name, address, phone, email)
@@ -24,12 +23,18 @@ INSERT INTO vehicle (id, brand, manufacture_year, type_vehicle, fuel_type)
 VALUES (3, 'Honda', 2008, 'COUPE', 'DIESEL');
 INSERT INTO vehicle (id, brand, manufacture_year, type_vehicle, fuel_type)
 VALUES (4, 'Buick', 1990, 'SUV', 'DIESEL');
+INSERT INTO vehicle (id, brand, manufacture_year, type_vehicle, fuel_type)
+VALUES (5, 'Dodge', 1990, 'COUPE', 'ESSENCE');
+INSERT INTO vehicle (id, brand, manufacture_year, type_vehicle, fuel_type)
+VALUES (6, 'Renault', 1990, 'COUPE', 'ESSENCE');
 
 
 INSERT INTO garage_vehicle (garage_id, vehicle_id) VALUES (1, 1);
 INSERT INTO garage_vehicle (garage_id, vehicle_id) VALUES (1, 2);
 INSERT INTO garage_vehicle (garage_id, vehicle_id) VALUES (1, 3);
 INSERT INTO garage_vehicle (garage_id, vehicle_id) VALUES (1, 4);
+INSERT INTO garage_vehicle (garage_id, vehicle_id) VALUES (1, 6);
+
 
 
 INSERT INTO accessory (id, name, description, price, type)
