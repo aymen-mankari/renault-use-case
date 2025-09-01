@@ -5,7 +5,6 @@ import com.renault.model.Vehicle;
 import org.mapstruct.Mapper;
 import org.springframework.stereotype.Component;
 
-import java.util.List;
 import java.util.Set;
 
 @Mapper(componentModel = "spring")

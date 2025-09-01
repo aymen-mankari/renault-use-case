@@ -1,7 +1,5 @@
 package com.renault.service;
 
-import static com.renault.constants.ApplicationConstants.*;
-
 import com.renault.dto.AccessoryDTO;
 import com.renault.exception.DataNotFoundException;
 import com.renault.model.Vehicle;
@@ -13,6 +11,10 @@ import org.mapstruct.factory.Mappers;
 import org.springframework.stereotype.Service;
 
 import java.util.Set;
+import java.util.concurrent.CopyOnWriteArraySet;
+
+import static com.renault.constants.ApplicationConstants.DATA_NOT_FOUND_EXCEPTION_MESSAGE_ACCESSORY;
+import static com.renault.constants.ApplicationConstants.DATA_NOT_FOUND_EXCEPTION_MESSAGE_VEHICLE;
 
 @Service
 @Slf4j
@@ -39,12 +41,12 @@ public class AccessoryService implements IService<AccessoryDTO> {
     }
 
     @Override
-    public AccessoryDTO update(AccessoryDTO obj) {
-        var optionalAccessory = this.accessoryRepository.findById(obj.getId());
-        if (!optionalAccessory.isPresent())
-            throw new DataNotFoundException(DATA_NOT_FOUND_EXCEPTION_MESSAGE_ACCESSORY + obj.getId());
+    public AccessoryDTO update(AccessoryDTO accessoryDTO) {
+        var existsById = this.accessoryRepository.existsById(accessoryDTO.getId());
+        if (!existsById)
+            throw new DataNotFoundException(String.format(DATA_NOT_FOUND_EXCEPTION_MESSAGE_ACCESSORY, accessoryDTO.getId()));
 
-        var updatedAccessory = this.accessoryMapper.accessoryDTOtoAccessory(obj);
+        var updatedAccessory = this.accessoryMapper.accessoryDTOtoAccessory(accessoryDTO);
         try {
             return this.accessoryMapper.accessoryToAccessoryDTO(this.accessoryRepository.save(updatedAccessory));
         } catch (Exception ex) {
@@ -53,19 +55,20 @@ public class AccessoryService implements IService<AccessoryDTO> {
     }
 
     @Override
-    public boolean delete(Long id) {
-        var optionalAccessory = this.accessoryRepository.findById(id);
+    public boolean delete(Long accessoryId) {
+        var optionalAccessory = this.accessoryRepository.findById(accessoryId);
         if (optionalAccessory.isPresent()) {
             var accessory = optionalAccessory.get();
-            if(accessory.getVehicles() !=null){
-                for (Vehicle vehicle : accessory.getVehicles()) {
-                    vehicle.removeAccessory(accessory);
+            if (accessory.getVehicles() != null) {
+                var copyVehicles = new CopyOnWriteArraySet<>(accessory.getVehicles());
+                for (Vehicle vehicle : copyVehicles) {
+                    accessory.removeVehicle(vehicle);
                 }
             }
             this.accessoryRepository.delete(accessory);
             return true;
         } else {
-            throw new DataNotFoundException(DATA_NOT_FOUND_EXCEPTION_MESSAGE_ACCESSORY + id);
+            throw new DataNotFoundException(String.format(DATA_NOT_FOUND_EXCEPTION_MESSAGE_ACCESSORY, accessoryId));
         }
     }
 
@@ -73,13 +76,11 @@ public class AccessoryService implements IService<AccessoryDTO> {
         var optionalVehicle = this.vehicleRepository.findById(vehicleId);
         var optionalAccessory = this.accessoryRepository.findById(accessoryId);
         var vehicle = optionalVehicle.orElseThrow(() -> new DataNotFoundException(DATA_NOT_FOUND_EXCEPTION_MESSAGE_VEHICLE + vehicleId));
-        var accessory = optionalAccessory.orElseThrow(() -> new DataNotFoundException(DATA_NOT_FOUND_EXCEPTION_MESSAGE_ACCESSORY + accessoryId));
+        var accessory = optionalAccessory.orElseThrow(() -> new DataNotFoundException(String.format(DATA_NOT_FOUND_EXCEPTION_MESSAGE_ACCESSORY, accessoryId)));
+        vehicle.addAccessory(accessory);
         try {
-            vehicle.addAccessory(accessory);
-            var addStatus = this.vehicleRepository.save(vehicle);
-            if (addStatus != null)
-                return true;
-            else return false;
+            var addStatus = this.accessoryRepository.save(accessory);
+            return addStatus != null ? true : false;
         } catch (Exception ex) {
             throw new RuntimeException(ex.getMessage());
         }
@@ -89,13 +90,11 @@ public class AccessoryService implements IService<AccessoryDTO> {
         var optionalVehicle = this.vehicleRepository.findById(vehicleId);
         var optionalAccessory = this.accessoryRepository.findById(accessoryId);
         var vehicle = optionalVehicle.orElseThrow(() -> new DataNotFoundException(DATA_NOT_FOUND_EXCEPTION_MESSAGE_VEHICLE + vehicleId));
-        var accessory = optionalAccessory.orElseThrow(() -> new DataNotFoundException(DATA_NOT_FOUND_EXCEPTION_MESSAGE_ACCESSORY + accessoryId));
+        var accessory = optionalAccessory.orElseThrow(() -> new DataNotFoundException(String.format(DATA_NOT_FOUND_EXCEPTION_MESSAGE_ACCESSORY, accessoryId)));
+        vehicle.removeAccessory(accessory);
         try {
-            vehicle.removeAccessory(accessory);
             var removeStatus = this.accessoryRepository.save(accessory);
-            if (removeStatus != null)
-                return true;
-            else return false;
+            return removeStatus != null ? true : false;
         } catch (Exception ex) {
             throw new RuntimeException(ex.getMessage());
         }

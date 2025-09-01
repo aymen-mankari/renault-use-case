@@ -1,9 +1,7 @@
 package com.renault.utils;
 
 import com.renault.dto.GarageDTO;
-import com.renault.dto.VehicleDTO;
 import com.renault.model.Garage;
-import com.renault.model.Vehicle;
 import org.mapstruct.Mapper;
 import org.springframework.stereotype.Component;
 

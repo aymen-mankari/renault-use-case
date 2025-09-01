@@ -1,6 +1,7 @@
 package com.renault.model;
 
 import static com.renault.constants.ApplicationConstants.*;
+
 import com.renault.exception.BadRequestException;
 import jakarta.persistence.*;
 import lombok.*;
@@ -18,9 +19,11 @@ import java.util.Set;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 public class Garage {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
+    @EqualsAndHashCode.Include
     private Long id;
     private String name;
     private String address;
@@ -55,18 +58,21 @@ public class Garage {
     }
 
     public void addVehicle(Vehicle vehicle) {
-        if (this.getVehicles().size() > 5) {
+        if (this.getVehicles().size() == 50) {
             throw new BadRequestException(BAD_REQUEST_EXCEPTION_GARAGE_SIZE_REACHED);
+        } else if (this.getVehicles().contains(vehicle)) {
+            throw new BadRequestException(String.format(BAD_REQUEST_EXCEPTION_ACCESSORY_ALREADY_EXIST_IN_GARAGE,
+                    vehicle.getId(), this.getId()));
         }
         this.vehicles.add(vehicle);
-        vehicle.addGarage(this);
+        vehicle.getGarages().add(this);
     }
 
     public void removeVehicle(Vehicle vehicle) {
-        if(!vehicles.contains(vehicle))
-            throw new BadRequestException(String.format(BAD_REQUEST_EXCEPTION_VEHICLE_NOT_FOUND_IN_GARAGE, vehicle.getId(),this.getId()));
+        if (!vehicles.contains(vehicle))
+            throw new BadRequestException(String.format(BAD_REQUEST_EXCEPTION_VEHICLE_NOT_FOUND_IN_GARAGE, vehicle.getId(), this.getId()));
         this.vehicles.remove(vehicle);
-        vehicle.removeGarage(this);
+        vehicle.getGarages().remove(this);
     }
 }
 

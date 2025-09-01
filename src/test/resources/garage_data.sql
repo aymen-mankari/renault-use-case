@@ -4,6 +4,8 @@
 -- Insert into garage table
 INSERT INTO garage (id, name, address, phone, email)
 VALUES (1, 'Weekend Garage', '789 Pine Road', '+1-555-0789', 'weekend@garage.com');
+INSERT INTO garage (id, name, address, phone, email)
+VALUES (2, 'Weekend Garage', '789 Pine Road', '+1-555-0789', 'weekend@garage.com');
 
 -- Insert into schedule_time_slots table
 INSERT INTO schedule_time_slots (schedule_garage_id, day_of_week, start_time, end_time)
@@ -27,6 +29,8 @@ INSERT INTO vehicle (id, brand, manufacture_year, type_vehicle, fuel_type)
 VALUES (5, 'Dodge', 1990, 'COUPE', 'ESSENCE');
 INSERT INTO vehicle (id, brand, manufacture_year, type_vehicle, fuel_type)
 VALUES (6, 'Renault', 1990, 'COUPE', 'ESSENCE');
+INSERT INTO vehicle (id, brand, manufacture_year, type_vehicle, fuel_type)
+VALUES (7, 'Mitsubishi', 1980, 'COUPE', 'ESSENCE');
 
 
 INSERT INTO garage_vehicle (garage_id, vehicle_id) VALUES (1, 1);
@@ -34,6 +38,8 @@ INSERT INTO garage_vehicle (garage_id, vehicle_id) VALUES (1, 2);
 INSERT INTO garage_vehicle (garage_id, vehicle_id) VALUES (1, 3);
 INSERT INTO garage_vehicle (garage_id, vehicle_id) VALUES (1, 4);
 INSERT INTO garage_vehicle (garage_id, vehicle_id) VALUES (1, 6);
+
+INSERT INTO garage_vehicle (garage_id, vehicle_id) VALUES (2, 2);
 
 
 

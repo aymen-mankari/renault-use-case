@@ -20,11 +20,9 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.time.DayOfWeek;
-import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Map;
 import java.util.Set;
 
 import static org.hamcrest.Matchers.*;
@@ -42,50 +40,40 @@ public class GarageControllerTest {
     private MockMvc mockMvc;
 
     @MockitoBean
-    private GarageService garageService;
+    private GarageService mockGarageService;
 
-    private GarageDTO mockGarage;
-
-    @BeforeEach
-    void initializeData() {
-        //Setup mock objects with dummy data
-        var mockTimeSlotsMap= new HashMap<DayOfWeek, OpeningTimeDTO>();
-        mockTimeSlotsMap.put(DayOfWeek.MONDAY, new OpeningTimeDTO(LocalTime.of(9, 00), LocalTime.of(19, 00)));
-        mockTimeSlotsMap.put(DayOfWeek.TUESDAY, new OpeningTimeDTO(LocalTime.of(9, 00), LocalTime.of(19, 00)));
-        var mockVehiclesList = new HashSet<VehicleDTO>();
-        mockVehiclesList.add(new VehicleDTO(1L, "Toyota", TypeVehicle.SUV, 2022, FuelType.HYBRIDE));
-        mockVehiclesList.add(new VehicleDTO(2L, "Ford", TypeVehicle.SUV, 2020, FuelType.DIESEL));
-
-        mockGarage = new GarageDTO();
-        mockGarage.setId(1L);
-        mockGarage.setAddress("address test");
-        mockGarage.setName("GARAGE NAME");
-        mockGarage.setEmail("test@test.com");
-        mockGarage.setTimeSlots(mockTimeSlotsMap);
-        mockGarage.setVehicles(mockVehiclesList);
-    }
+    private static final String BASE_URI = "/api/v1/garage";
 
     @Test
     void testGetGarageByIdFound() throws Exception {
         // Setup mocks
-        doReturn(mockGarage).when(garageService).findById(any());
+        var mockGarage = new GarageDTO();
+        mockGarage.setId(1L);
+        mockGarage.setAddress("address test");
+        mockGarage.setName("GARAGE NAME");
+        mockGarage.setEmail("test@test.com");
+        mockGarage.getTimeSlots().put(DayOfWeek.MONDAY, new OpeningTimeDTO(LocalTime.of(9, 00), LocalTime.of(19, 00)));
+        mockGarage.getTimeSlots().put(DayOfWeek.TUESDAY, new OpeningTimeDTO(LocalTime.of(9, 00), LocalTime.of(19, 00)));
+
+        doReturn(mockGarage).when(mockGarageService).findById(any());
         // Execute the GET request
-        mockMvc.perform(get("/api/v1/garage/{id}", 1))
+        mockMvc.perform(get(BASE_URI + "/{id}", 1))
                 // Validate the response code and content type
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 // Validate the returned fields
                 .andExpect(jsonPath("$.id", is(1)))
                 .andExpect(jsonPath("$.name", is("GARAGE NAME")))
-                .andExpect(jsonPath("$.email", is("test@test.com")));
+                .andExpect(jsonPath("$.email", is("test@test.com")))
+                .andExpect(jsonPath("$.timeSlots", aMapWithSize(2)));
     }
 
     @Test
     void testGetGarageByIdNotFound() throws Exception {
         // Setup mocks
-        doThrow(DataNotFoundException.class).when(garageService).findById(any());
+        doThrow(DataNotFoundException.class).when(mockGarageService).findById(any());
         // Execute the GET request
-        mockMvc.perform(get("/api/v1/garage/{id}", 1))
+        mockMvc.perform(get(BASE_URI + "/{id}", 1))
                 // Validate the response code and content type
                 .andExpect(status().isNotFound())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
@@ -95,7 +83,15 @@ public class GarageControllerTest {
     @Test
     void testSaveGarageSuccess() throws Exception {
         // Setup mocks
-        doReturn(mockGarage).when(garageService).save(any());
+        var mockGarage = new GarageDTO();
+        mockGarage.setId(1L);
+        mockGarage.setAddress("address test");
+        mockGarage.setName("GARAGE NAME");
+        mockGarage.setEmail("test@test.com");
+        mockGarage.getTimeSlots().put(DayOfWeek.MONDAY, new OpeningTimeDTO(LocalTime.of(9, 00), LocalTime.of(19, 00)));
+        mockGarage.getTimeSlots().put(DayOfWeek.TUESDAY, new OpeningTimeDTO(LocalTime.of(9, 00), LocalTime.of(19, 00)));
+        doReturn(mockGarage).when(mockGarageService).save(any());
+
         var postGarage = new GarageDTO();
         postGarage.setAddress("address test");
         postGarage.setName("GARAGE NAME");
@@ -104,14 +100,14 @@ public class GarageControllerTest {
         postGarage.getTimeSlots().put(DayOfWeek.TUESDAY, new OpeningTimeDTO(LocalTime.of(9, 00), LocalTime.of(19, 00)));
 
         // Execute the POST request
-        mockMvc.perform(post("/api/v1/garage/save")
+        mockMvc.perform(post(BASE_URI + "/save")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(TestUtils.asJsonString(postGarage)))
                 // Validate the response code and content type
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 // Validate the returned fields
-                .andExpect(jsonPath("$.id", is(1)))
+                .andExpect(jsonPath("$.id", notNullValue()))
                 .andExpect(jsonPath("$.name", is("GARAGE NAME")))
                 .andExpect(jsonPath("$.timeSlots", aMapWithSize(2)))
                 .andExpect(jsonPath("$.email", is("test@test.com")));
@@ -120,11 +116,11 @@ public class GarageControllerTest {
     @Test
     void testSaveGarageFailure() throws Exception {
         // Setup mocks
-        doThrow(RuntimeException.class).when(garageService).save(any());
+        doThrow(RuntimeException.class).when(mockGarageService).save(any());
         var mockPostGarage = new GarageDTO();
 
         // Execute the POST request
-        mockMvc.perform(post("/api/v1/garage/save")
+        mockMvc.perform(post(BASE_URI + "/save")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(TestUtils.asJsonString(mockPostGarage)))
                 // Validate the returned fields
@@ -143,29 +139,35 @@ public class GarageControllerTest {
         mockUpdatedGarage.setEmail("test@test.com");
         mockUpdatedGarage.getTimeSlots().put(DayOfWeek.MONDAY, new OpeningTimeDTO(LocalTime.of(9, 00), LocalTime.of(19, 00)));
         mockUpdatedGarage.getTimeSlots().put(DayOfWeek.TUESDAY, new OpeningTimeDTO(LocalTime.of(9, 00), LocalTime.of(19, 00)));
-        mockUpdatedGarage.getTimeSlots().put(DayOfWeek.WEDNESDAY, new OpeningTimeDTO(LocalTime.of(9, 00), LocalTime.of(19, 00)));
-        mockUpdatedGarage.getTimeSlots().put(DayOfWeek.FRIDAY, new OpeningTimeDTO(LocalTime.of(9, 00), LocalTime.of(19, 00)));
-        doReturn(mockUpdatedGarage).when(garageService).update(any());
+        doReturn(mockUpdatedGarage).when(mockGarageService).update(any());
+
+        var putGarage = new GarageDTO();
+        putGarage.setId(1L);
+        putGarage.setAddress("updated address test");
+        putGarage.setName("UPDATED GARAGE NAME");
+        putGarage.setEmail("test@test.com");
+        putGarage.getTimeSlots().put(DayOfWeek.MONDAY, new OpeningTimeDTO(LocalTime.of(9, 00), LocalTime.of(19, 00)));
+        putGarage.getTimeSlots().put(DayOfWeek.TUESDAY, new OpeningTimeDTO(LocalTime.of(9, 00), LocalTime.of(19, 00)));
 
         // Execute the PUT request
-        mockMvc.perform(put("/api/v1/garage/update")
+        mockMvc.perform(put(BASE_URI + "/update")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(TestUtils.asJsonString(mockUpdatedGarage)))
+                        .content(TestUtils.asJsonString(putGarage)))
                 // Validate the response code and content type
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 // Validate the returned fields
                 .andExpect(jsonPath("$.id", is(1)))
                 .andExpect(jsonPath("$.name", is("UPDATED GARAGE NAME")))
-                .andExpect(jsonPath("$.timeSlots", aMapWithSize(4)));
+                .andExpect(jsonPath("$.timeSlots", aMapWithSize(2)));
     }
 
     @Test
     void testDeleteGarageSuccess() throws Exception {
         // Setup mocks
-        doReturn(Boolean.valueOf(true)).when(garageService).delete(any());
+        doReturn(Boolean.valueOf(true)).when(mockGarageService).delete(any());
         // Execute the DELETE request
-        mockMvc.perform(delete("/api/v1/garage/delete/{id}", 1L))
+        mockMvc.perform(delete(BASE_URI + "/delete/{id}", 1L))
                 // Validate the response code and content type
                 .andExpect(status().isOk());
     }
@@ -173,9 +175,9 @@ public class GarageControllerTest {
     @Test
     void testDeleteGarageFailure() throws Exception {
         // Setup mocks
-        doThrow(DataNotFoundException.class).when(garageService).delete(any());
+        doThrow(DataNotFoundException.class).when(mockGarageService).delete(any());
         // Execute the DELETE request
-        mockMvc.perform(delete("/api/v1/garage/delete/{id}", 100L))
+        mockMvc.perform(delete(BASE_URI + "/delete/{id}", 100L))
                 // Validate the response code and content type
                 .andExpect(status().isNotFound())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
@@ -184,15 +186,16 @@ public class GarageControllerTest {
 
     @Test
     void testGetVehiclesByType() throws Exception {
+        final var typeVehicle = TypeVehicle.SUV.toString();
         // Setup mocks
-        var garages = Set.of(mockGarage);
-        doReturn(garages).when(garageService).findByTypeVehicles(any());
-        // Execute the DELETE request
-        mockMvc.perform(get("/api/v1/garage/byTypeVehicle/{typeVehicle}", "SUV"))
+        final var garages = Set.of(mock(GarageDTO.class), mock(GarageDTO.class), mock(GarageDTO.class));
+        doReturn(garages).when(mockGarageService).findByTypeVehicles(any());
+        // Execute the GET request
+        mockMvc.perform(get(BASE_URI + "/byTypeVehicle/{typeVehicle}", typeVehicle))
                 // Validate the response code and content type
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-                .andExpect(jsonPath("$[0].vehicles", hasSize(2)))
-                .andExpect(jsonPath("$[0].vehicles[0].typeVehicle", is("SUV")));
+                .andExpect(jsonPath("$", hasSize(3)))
+                .andExpect(jsonPath("$[0].vehicles").exists());
     }
 }

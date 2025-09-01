@@ -78,7 +78,7 @@ public class GarageServiceIntegrationTest {
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 // Validate the returned fields
                 .andExpect(jsonPath("$.httpStatus", is(404)))
-                .andExpect(jsonPath("$.message", containsString("Garage not found with ID :100")));
+                .andExpect(jsonPath("$.message", containsString("Garage not found with ID : 100")));
     }
 
     @Test
@@ -125,7 +125,7 @@ public class GarageServiceIntegrationTest {
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 // Validate the returned fields
                 .andExpect(jsonPath("$.httpStatus", is(404)))
-                .andExpect(jsonPath("$.message", containsString("Garage not found with ID :100")));
+                .andExpect(jsonPath("$.message", containsString("Garage not found with ID : 100")));
 
     }
 
@@ -148,7 +148,7 @@ public class GarageServiceIntegrationTest {
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 // Validate the returned fields
                 .andExpect(jsonPath("$.httpStatus", is(404)))
-                .andExpect(jsonPath("$.message", containsString("Garage not found with ID :100")));
+                .andExpect(jsonPath("$.message", containsString("Garage not found with ID : 100")));
     }
 
     @Test

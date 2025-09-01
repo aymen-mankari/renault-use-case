@@ -12,6 +12,7 @@ import org.mapstruct.factory.Mappers;
 import org.springframework.stereotype.Service;
 
 import java.util.Set;
+import java.util.concurrent.CopyOnWriteArraySet;
 
 import static com.renault.constants.ApplicationConstants.DATA_NOT_FOUND_EXCEPTION_MESSAGE_GARAGE;
 import static com.renault.constants.ApplicationConstants.DATA_NOT_FOUND_EXCEPTION_MESSAGE_VEHICLE;
@@ -32,9 +33,9 @@ public class VehicleService implements IService<VehicleDTO> {
     }
 
     @Override
-    public VehicleDTO save(VehicleDTO obj) {
+    public VehicleDTO save(VehicleDTO vehicleDTO) {
         try {
-            var vehicle = this.vehicleMapper.vehicleDTOtoVehicle(obj);
+            var vehicle = this.vehicleMapper.vehicleDTOtoVehicle(vehicleDTO);
             return this.vehicleMapper.vehicleToVehicleDTO(this.vehicleRepository.save(vehicle));
         } catch (Exception ex) {
             throw new RuntimeException(ex.getMessage());
@@ -42,13 +43,14 @@ public class VehicleService implements IService<VehicleDTO> {
     }
 
     @Override
-    public VehicleDTO update(VehicleDTO obj) {
-        var updatedVehicle = this.vehicleMapper.vehicleDTOtoVehicle(obj);
+    public VehicleDTO update(VehicleDTO vehicleDTO) {
+        var updatedVehicle = this.vehicleMapper.vehicleDTOtoVehicle(vehicleDTO);
         var existsById = this.vehicleRepository.existsById(updatedVehicle.getId());
         if (!existsById)
-            throw new DataNotFoundException(DATA_NOT_FOUND_EXCEPTION_MESSAGE_VEHICLE + obj.getId());
+            throw new DataNotFoundException(String.format(DATA_NOT_FOUND_EXCEPTION_MESSAGE_VEHICLE, vehicleDTO.getId()));
         try {
-            return this.vehicleMapper.vehicleToVehicleDTO(this.vehicleRepository.save(updatedVehicle));
+            var updateResult = this.vehicleRepository.save(updatedVehicle);
+            return this.vehicleMapper.vehicleToVehicleDTO(updateResult);
         } catch (Exception ex) {
             throw new RuntimeException(ex.getMessage());
         }
@@ -60,14 +62,15 @@ public class VehicleService implements IService<VehicleDTO> {
         if (optionalVehicle.isPresent()) {
             var vehicle = optionalVehicle.get();
             if (vehicle.getGarages() != null) {
-                for (Garage garage : vehicle.getGarages()) {
-                    garage.removeVehicle(vehicle);
+                var copyGarages = new CopyOnWriteArraySet<>(vehicle.getGarages());
+                for (Garage garage : copyGarages) {
+                    vehicle.removeGarage(garage);
                 }
             }
             this.vehicleRepository.delete(vehicle);
             return true;
         } else {
-            throw new DataNotFoundException(DATA_NOT_FOUND_EXCEPTION_MESSAGE_VEHICLE + id);
+            throw new DataNotFoundException(String.format(DATA_NOT_FOUND_EXCEPTION_MESSAGE_VEHICLE, id));
         }
     }
 
@@ -75,19 +78,16 @@ public class VehicleService implements IService<VehicleDTO> {
         var optionalVehicle = this.vehicleRepository.findById(vehicleId);
         var optionalGarage = this.garageRepository.findById(garageId);
         if (!optionalGarage.isPresent())
-            throw new DataNotFoundException(DATA_NOT_FOUND_EXCEPTION_MESSAGE_GARAGE + garageId);
+            throw new DataNotFoundException(String.format(DATA_NOT_FOUND_EXCEPTION_MESSAGE_GARAGE, garageId));
         else if (!optionalVehicle.isPresent())
-            throw new DataNotFoundException(DATA_NOT_FOUND_EXCEPTION_MESSAGE_VEHICLE + vehicleId);
+            throw new DataNotFoundException(String.format(DATA_NOT_FOUND_EXCEPTION_MESSAGE_VEHICLE, vehicleId));
 
         var vehicle = optionalVehicle.get();
         var garage = optionalGarage.get();
-        garage.addVehicle(vehicle);
+        vehicle.addGarage(garage);
         try {
-            var savedVehicle = this.vehicleRepository.save(vehicle);
-            if (savedVehicle != null)
-                return true;
-            else
-                return false;
+            var updateStatus = this.vehicleRepository.save(vehicle);
+            return updateStatus != null ? true : false;
         } catch (Exception ex) {
             ex.printStackTrace();
             throw new RuntimeException(ex.getMessage());
@@ -98,19 +98,16 @@ public class VehicleService implements IService<VehicleDTO> {
         var optionalVehicle = this.vehicleRepository.findById(vehicleId);
         var optionalGarage = this.garageRepository.findById(garageId);
         if (!optionalGarage.isPresent())
-            throw new DataNotFoundException(DATA_NOT_FOUND_EXCEPTION_MESSAGE_GARAGE + garageId);
+            throw new DataNotFoundException(String.format(DATA_NOT_FOUND_EXCEPTION_MESSAGE_GARAGE, garageId));
         else if (!optionalVehicle.isPresent())
-            throw new DataNotFoundException(DATA_NOT_FOUND_EXCEPTION_MESSAGE_VEHICLE + vehicleId);
+            throw new DataNotFoundException(String.format(DATA_NOT_FOUND_EXCEPTION_MESSAGE_VEHICLE, vehicleId));
 
         var vehicle = optionalVehicle.get();
         var garage = optionalGarage.get();
-        garage.removeVehicle(vehicle);
+        vehicle.removeGarage(garage);
         try {
-            var savedVehicle = this.vehicleRepository.save(vehicle);
-            if (savedVehicle != null)
-                return true;
-            else
-                return false;
+            var updateStatus = this.vehicleRepository.save(vehicle);
+            return updateStatus != null ? true : false;
         } catch (Exception ex) {
             ex.printStackTrace();
             throw new RuntimeException(ex.getMessage());
@@ -119,7 +116,7 @@ public class VehicleService implements IService<VehicleDTO> {
 
     public Set<VehicleDTO> getVehiclesRelatedToAGarage(final Long idGarage) {
         var optionalGarage = this.garageRepository.findById(idGarage);
-        var garage = optionalGarage.orElseThrow(() -> new DataNotFoundException(DATA_NOT_FOUND_EXCEPTION_MESSAGE_GARAGE + idGarage));
+        var garage = optionalGarage.orElseThrow(() -> new DataNotFoundException(String.format(DATA_NOT_FOUND_EXCEPTION_MESSAGE_GARAGE, idGarage)));
         return this.vehicleMapper.toVehicleDTOList(garage.getVehicles());
     }
 

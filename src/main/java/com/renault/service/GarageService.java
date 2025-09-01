@@ -3,7 +3,6 @@ package com.renault.service;
 import com.renault.dto.GarageDTO;
 import com.renault.enums.TypeVehicle;
 import com.renault.exception.DataNotFoundException;
-import com.renault.model.Garage;
 import com.renault.repository.GarageRepository;
 import com.renault.utils.GarageMapper;
 import lombok.extern.slf4j.Slf4j;
@@ -26,9 +25,9 @@ public class GarageService implements IService<GarageDTO> {
     }
 
     @Override
-    public GarageDTO save(GarageDTO obj) {
+    public GarageDTO save(GarageDTO garageDTO) {
         try {
-            var garage = garageMapper.garageDTOtoGarage(obj);
+            var garage = garageMapper.garageDTOtoGarage(garageDTO);
             return garageMapper.garageToGarageDTO(this.garageRepository.save(garage));
         } catch (Exception ex) {
             throw new RuntimeException(ex.getMessage());
@@ -36,11 +35,11 @@ public class GarageService implements IService<GarageDTO> {
     }
 
     @Override
-    public GarageDTO update(GarageDTO obj) {
-        var updatedGarage = garageMapper.garageDTOtoGarage(obj);
+    public GarageDTO update(GarageDTO garageDTO) {
+        var updatedGarage = garageMapper.garageDTOtoGarage(garageDTO);
         var existsById = this.garageRepository.existsById(updatedGarage.getId());
         if (!existsById)
-            throw new DataNotFoundException(DATA_NOT_FOUND_EXCEPTION_MESSAGE_GARAGE + obj.getId());
+            throw new DataNotFoundException(String.format(DATA_NOT_FOUND_EXCEPTION_MESSAGE_GARAGE, garageDTO.getId()));
         try {
             return garageMapper.garageToGarageDTO(this.garageRepository.save(updatedGarage));
         } catch (Exception ex) {
@@ -55,7 +54,7 @@ public class GarageService implements IService<GarageDTO> {
             this.garageRepository.deleteById(id);
             return true;
         } else {
-            throw new DataNotFoundException(DATA_NOT_FOUND_EXCEPTION_MESSAGE_GARAGE + id);
+            throw new DataNotFoundException(String.format(DATA_NOT_FOUND_EXCEPTION_MESSAGE_GARAGE, id));
         }
     }
 
@@ -64,7 +63,7 @@ public class GarageService implements IService<GarageDTO> {
         if (optGarage.isPresent()) {
             var garageDTO = garageMapper.garageToGarageDTO(optGarage.get());
             return garageDTO;
-        } else throw new DataNotFoundException(DATA_NOT_FOUND_EXCEPTION_MESSAGE_GARAGE + id);
+        } else throw new DataNotFoundException(String.format(DATA_NOT_FOUND_EXCEPTION_MESSAGE_GARAGE, id));
     }
 
     public Set<GarageDTO> findByTypeVehicles(final String typeVehicle) {

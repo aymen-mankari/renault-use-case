@@ -1,8 +1,10 @@
 package com.renault.service;
 
+import com.renault.constants.ApplicationConstants;
 import com.renault.dto.VehicleDTO;
 import com.renault.enums.FuelType;
 import com.renault.enums.TypeVehicle;
+import com.renault.exception.BadRequestException;
 import com.renault.exception.DataNotFoundException;
 import com.renault.model.Garage;
 import com.renault.model.Vehicle;
@@ -12,10 +14,15 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
+import java.time.DayOfWeek;
+import java.time.LocalTime;
+import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
 
@@ -31,18 +38,24 @@ public class VehicleServiceTest {
     private GarageRepository mockGarageRepository;
     @InjectMocks
     private VehicleService vehicleService;
+    @Mock
+    private Garage mockGarage;
+    @Mock
+    private Vehicle mockVehicle;
+    @Mock
+    private VehicleDTO mockVehicleDTO;
 
     @Test
     void testSaveVehicleSuccess() {
         //Setup mocks
-        var mockVehicle = Vehicle.builder()
+        mockVehicle = Vehicle.builder()
                 .id(1L)
                 .brand("Toyota")
                 .typeVehicle(TypeVehicle.SUV)
                 .manufactureYear(2010)
                 .fuelType(FuelType.HYBRIDE)
                 .build();
-        var vehicleToSave = VehicleDTO.builder()
+        mockVehicleDTO = VehicleDTO.builder()
                 .brand("Toyota")
                 .typeVehicle(TypeVehicle.SUV)
                 .manufactureYear(2010)
@@ -50,9 +63,10 @@ public class VehicleServiceTest {
                 .build();
         doReturn(mockVehicle).when(mockVehicleRepository).save(any());
         //Invoking save method
-        var result = vehicleService.save(vehicleToSave);
+        var result = vehicleService.save(mockVehicleDTO);
         //Verify results
         Assertions.assertNotNull(result);
+        Assertions.assertInstanceOf(VehicleDTO.class, result);
         Assertions.assertEquals("Toyota", result.getBrand());
     }
 
@@ -86,14 +100,7 @@ public class VehicleServiceTest {
     @Test
     void deleteVehicleSuccess() {
         //Setting mocks
-        var mockVehicleToDelete = Vehicle.builder()
-                .id(1L)
-                .brand("Toyota")
-                .typeVehicle(TypeVehicle.COUPE)
-                .manufactureYear(2020)
-                .fuelType(FuelType.HYBRIDE)
-                .build();
-        doReturn(Optional.of(mockVehicleToDelete)).when(mockVehicleRepository).findById(any());
+        doReturn(Optional.of(mockVehicle)).when(mockVehicleRepository).findById(any());
         //Invoking delete method
         var result = vehicleService.delete(1L);
         //Verify results
@@ -111,25 +118,16 @@ public class VehicleServiceTest {
     @Test
     void testAddVehicleToGarageSuccess() {
         //Setting mocks
-        var mockVehicle = Vehicle.builder()
-                .id(1L)
-                .brand("Toyota")
-                .typeVehicle(TypeVehicle.COUPE)
-                .manufactureYear(2020)
-                .fuelType(FuelType.HYBRIDE)
-                .build();
-        Garage mockGarage = mock(Garage.class);
         doReturn(Optional.of(mockGarage)).when(mockGarageRepository).findById(any());
         doReturn(Optional.of(mockVehicle)).when(mockVehicleRepository).findById(any());
         doReturn(mockVehicle).when(mockVehicleRepository).save(any());
-
         //Invoking service method
         final var vehicleId = 100L;
         final var garageId = 1L;
         var result = vehicleService.addVehicleToGarage(vehicleId, garageId);
         //Verify results
         Assertions.assertTrue(result);
-        verify(mockGarage).addVehicle(mockVehicle);
+        verify(mockVehicle).addGarage(mockGarage);
     }
 
     @Test
@@ -140,6 +138,31 @@ public class VehicleServiceTest {
         final var garageId = 1L;
         //Invoke method & Verify results
         Assertions.assertThrows(DataNotFoundException.class, () -> vehicleService.addVehicleToGarage(vehicleId, garageId));
+    }
+
+    @Test
+    void testAddVehicleToGarage_WhenGarageReachedMaxSize() {
+        //Setup mocks
+        var mockVehicle = Vehicle.builder()
+                .id(1L)
+                .brand("Toyota")
+                .typeVehicle(TypeVehicle.COUPE)
+                .manufactureYear(2020)
+                .fuelType(FuelType.HYBRIDE)
+                .build();
+
+        Garage spyGarage = spy(Garage.class);
+        Set<Vehicle> mockVehicleSet = mock(Set.class);
+        doReturn(50).when(mockVehicleSet).size();
+        doReturn(mockVehicleSet).when(spyGarage).getVehicles();
+
+        doReturn(Optional.of(spyGarage)).when(mockGarageRepository).findById(any());
+        doReturn(Optional.of(mockVehicle)).when(mockVehicleRepository).findById(any());
+
+        final var vehicleId = 100L;
+        final var garageId = 1L;
+        //Invoke method & Verify results
+        Assertions.assertThrows(BadRequestException.class, () -> vehicleService.addVehicleToGarage(vehicleId, garageId));
     }
 
     @Test
@@ -189,7 +212,7 @@ public class VehicleServiceTest {
                 .fuelType(FuelType.HYBRIDE)
                 .build();
         var mockVehicle2 = Vehicle.builder()
-                .id(1L)
+                .id(2L)
                 .brand("Toyota")
                 .typeVehicle(TypeVehicle.COUPE)
                 .manufactureYear(2020)

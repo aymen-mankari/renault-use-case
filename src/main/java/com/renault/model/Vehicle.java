@@ -2,12 +2,15 @@ package com.renault.model;
 
 import com.renault.enums.FuelType;
 import com.renault.enums.TypeVehicle;
+import com.renault.exception.BadRequestException;
 import jakarta.persistence.*;
 import lombok.*;
 
-import java.time.LocalDate;
 import java.util.HashSet;
 import java.util.Set;
+
+import static com.renault.constants.ApplicationConstants.BAD_REQUEST_EXCEPTION_ACCESSORY_ALREADY_FOUND_IN_ACCESSORY_LIST;
+import static com.renault.constants.ApplicationConstants.BAD_REQUEST_EXCEPTION_ACCESSORY_NOT_FOUND_IN_ACCESSORY_LIST;
 
 @Builder
 @Entity
@@ -15,9 +18,11 @@ import java.util.Set;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 public class Vehicle {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
+    @EqualsAndHashCode.Include
     private Long id;
     private String brand;
     private Integer manufactureYear;
@@ -34,21 +39,25 @@ public class Vehicle {
             inverseJoinColumns = @JoinColumn(name = "accessory_id"))
     private Set<Accessory> accessories = new HashSet<>();
 
-    public void addGarage(Garage garage){
-        this.garages.add(garage);
+    public void addGarage(Garage garage) {
+        garage.addVehicle(this);
     }
 
-    public void removeGarage(Garage garage){
-        this.garages.remove(garage);
+    public void removeGarage(Garage garage) {
+        garage.removeVehicle(this);
     }
 
-    public void addAccessory(Accessory accessory){
+    public void addAccessory(Accessory accessory) {
+        if (this.accessories.contains(accessory))
+            throw new BadRequestException(String.format(BAD_REQUEST_EXCEPTION_ACCESSORY_ALREADY_FOUND_IN_ACCESSORY_LIST, accessory.getId()));
         this.accessories.add(accessory);
-        accessory.addVehicle(this);
+        accessory.getVehicles().add(this);
     }
 
-    public void removeAccessory(Accessory accessory){
+    public void removeAccessory(Accessory accessory) {
+        if (!this.accessories.contains(accessory))
+            throw new BadRequestException(String.format(BAD_REQUEST_EXCEPTION_ACCESSORY_NOT_FOUND_IN_ACCESSORY_LIST, accessory.getId()));
         this.accessories.remove(accessory);
-        accessory.removeVehicle(this);
+        accessory.getVehicles().remove(this);
     }
 }

@@ -91,7 +91,7 @@ public class VehicleServiceIntegrationTest {
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 // Validate the returned fields
                 .andExpect(jsonPath("$.httpStatus", is(404)))
-                .andExpect(jsonPath("$.message", containsString("Vehicle not found with ID :100")));
+                .andExpect(jsonPath("$.message", containsString("Vehicle not found with ID : 100")));
     }
 
     @Test
@@ -112,20 +112,22 @@ public class VehicleServiceIntegrationTest {
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 // Validate the returned fields
                 .andExpect(jsonPath("$.httpStatus", is(404)))
-                .andExpect(jsonPath("$.message", containsString("Vehicle not found with ID :100")));
+                .andExpect(jsonPath("$.message", containsString("Vehicle not found with ID : 100")));
     }
 
     @Test
     void testAddVehicleToGarageSuccess() throws Exception {
+        final var vehicleId = 7;
+        final var garageId = 1;
         // Execute PUT request
-        mockMvc.perform(put(BASE_URI + "/{vehicleId}/garage/{garageId}", 1, 1))
+        mockMvc.perform(put(BASE_URI + "/{vehicleId}/garage/{garageId}", vehicleId, garageId))
                 // Validate the response code and content type
                 .andExpect(status().isOk())
                 .andExpect(content().string("true"));
     }
 
     @Test
-    void testAddVehicleToGarageFailure() throws Exception {
+    void testAddVehicleToGarage_WhenVehicleDoesNotExist() throws Exception {
         // Execute PUT request
         mockMvc.perform(put(BASE_URI + "/{vehicleId}/garage/{garageId}", 100, 1))
                 // Validate the response code and content type
@@ -133,8 +135,17 @@ public class VehicleServiceIntegrationTest {
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 // Validate the returned fields
                 .andExpect(jsonPath("$.httpStatus", is(404)))
-                .andExpect(jsonPath("$.message", containsString("Vehicle not found with ID :100")));
+                .andExpect(jsonPath("$.message", containsString("Vehicle not found with ID : 100")));
 
+    }
+
+    @Test
+    void testAddVehicleToGarage_WhenVehicleAlreadyExistInGarage() throws Exception {
+        // Execute PUT request
+        mockMvc.perform(put(BASE_URI + "/{vehicleId}/garage/{garageId}", 1, 1))
+                // Validate the response code and content type
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message", containsString("Vehicle [1] already exist in the garage [1]")));
     }
 
     @Test
@@ -145,6 +156,7 @@ public class VehicleServiceIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(content().string("true"));
     }
+
     @Test
     void testRemoveVehicleFromGarage_WhenVehicleDoesNotBelongToGarage() throws Exception {
         // Execute DELETE request
@@ -174,7 +186,7 @@ public class VehicleServiceIntegrationTest {
                 // Validate the response code and content type
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-                .andExpect(jsonPath("$", hasSize(1)))
+                .andExpect(jsonPath("$", hasSize(2)))
                 .andExpect(jsonPath("$[0].vehicles", hasSize(2)))
                 .andExpect(jsonPath("$[0].vehicles[0].brand", is("Renault")));
     }
